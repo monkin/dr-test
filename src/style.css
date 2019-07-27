@@ -1,0 +1,23 @@
+body, html {
+    width: 100%;
+    height: 100%;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-direction: row;
+    align-items: stretch;
+    overflow: hidden;
+    font-family: Roboto, sans-serif;
+}
+
+.gamePanel {
+    display: block;
+    width: calc(100% - 300px);
+    outline: none;
+}
+
+.debugPanel {
+    width: 300px;
+    flex-grow: 0;
+    flex-shrink: 0;
+}
