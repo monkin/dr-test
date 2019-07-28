@@ -15,7 +15,7 @@ import {
 import { clickHandler } from "../utils/clickHandler";
 import { uid } from "../utils/uid";
 
-import spinImage from "./spin.png";
+import spinImage from "./images/spin.png";
 
 export interface SpinButtonProps {
     mesh: Mesh;
@@ -26,31 +26,35 @@ export interface SpinButtonProps {
 
 export function spinButton(scene: Scene, { mesh, time, active, onClick }: SpinButtonProps) {
     const material = new StandardMaterial(uid("spinButtonMaterial"), scene),
-        maxGlow = map(active)(active => active ? 1 : 0),
-        animatedMaxGlow = numberTransition({
+        activeValue = map(active)(active => active ? 1 : 0),
+        animatedActiveValue = numberTransition({
             time,
-            duration: 300,
-            value: maxGlow,
+            duration: 500,
+            value: activeValue,
         }),
-        emissiveValue = map(time, animatedMaxGlow)((time, glow) => {
-            return ((Math.sin(time / 200) + 1) * 0.1 + 0.25) * glow;
+        opacity = map(animatedActiveValue)(v => v * 0.5 + 0.5),
+        emissiveValue = map(time, animatedActiveValue)((time, glow) => {
+            return ((Math.sin(time / 200) + 1) * 0.5) * glow;
         });
     
-    const updateEmission = write(material, {
-        emissiveColor: map(emissiveValue)(v => new Color3(0.5, 0.5, 0.33).scale(v)),
+    const updateMaterial = write(material, {
+        emissiveColor: map(emissiveValue)(v => new Color3(0.4, 0.4, 0.4).scale(v)),
+        alpha: opacity,
     });
 
     const texture = new Texture(spinImage, scene);
 
     material.sideOrientation = Mesh.FRONTSIDE;
-    material.diffuseColor = new Color3(0.22, 0.22, 0.22);
+    material.diffuseColor = new Color3(0.75, 0.75, 0.75);
     material.diffuseTexture = texture;
-    material.specularColor = new Color3(0.7, 0.7, 0.7);
+    material.emissiveTexture = texture;
+    material.specularColor = new Color3(0.2, 0.2, 0.2);
+    material.specularPower = 20;
     material.alpha = 0.9;
     mesh.material = material;
 
     return group({
-            update: updateEmission,
+            update: updateMaterial,
             dispose: () => {
                 material.dispose();
                 texture.dispose();

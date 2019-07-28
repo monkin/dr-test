@@ -18,14 +18,17 @@ import {
     spinButton
 } from "./game";
 import {
-    ReelSymbol,
     createGameStore,
     selectFirstRow,
     selectPreviousSymbols,
     selectRoundStartTime,
     spiningDuration,
     stopDelay,
-    reelContent
+    allSybols,
+    selectRoundEndTime,
+    selectWinningCombination,
+    selectTime,
+    selectIsWinningTime
 } from "./state";
 import { startRoundAction } from "./state/branches";
 
@@ -41,9 +44,12 @@ window.addEventListener("DOMContentLoaded", () => {
             const previousSymbols = map(state)(selectPreviousSymbols),
                 firstRow = map(state)(selectFirstRow),
                 roundStartTime = map(state)(selectRoundStartTime),
-                time = map(state)(state => state.time);
+                roundEndTime = map(state)(selectRoundEndTime),
+                time = map(state)(selectTime),
+                combination = map(state)(selectWinningCombination),
+                isWinningTime = map(state)(selectIsWinningTime);
             
-            const randomSymbol = () => reelContent[Math.floor(Math.random() * reelContent.length)],
+            const randomSymbol = () => allSybols[Math.floor(Math.random() * allSybols.length)],
                 startRound = () => {
                     store.dispatch(startRoundAction(Date.now(), [
                         randomSymbol(),
@@ -65,30 +71,33 @@ window.addEventListener("DOMContentLoaded", () => {
                         mesh: meshes[MeshName.Reel1],
                         previousSymbol: map(previousSymbols)(row => row[0]),
                         currenSymbol: map(firstRow)(row => row[0]),
-                        highlightedSymbol: null,
+                        highlightedSymbol: map(combination)(c => c ? c.symbols[0] : null),
                         spinStartTime: roundStartTime,
-                        spinEndTime: map(roundStartTime)(t => t + spiningDuration)
+                        spinEndTime: map(roundStartTime)(t => t + spiningDuration),
+                        glow: isWinningTime,
                     }),
                     reel(scene, {
                         time,
                         mesh: meshes[MeshName.Reel2],
                         previousSymbol: map(previousSymbols)(row => row[1]),
                         currenSymbol: map(firstRow)(row => row[1]),
-                        highlightedSymbol: null,
+                        highlightedSymbol: map(combination)(c => c ? c.symbols[1] : null),
                         spinStartTime: roundStartTime,
-                        spinEndTime: map(roundStartTime)(t => t + spiningDuration + stopDelay)
+                        spinEndTime: map(roundStartTime)(t => t + spiningDuration + stopDelay),
+                        glow: isWinningTime,
                     }),
                     reel(scene, {
                         time,
                         mesh: meshes[MeshName.Reel3],
                         previousSymbol: map(previousSymbols)(row => row[2]),
                         currenSymbol: map(firstRow)(row => row[2]),
-                        highlightedSymbol: null,
+                        highlightedSymbol: map(combination)(c => c ? c.symbols[2] : null),
                         spinStartTime: roundStartTime,
-                        spinEndTime: map(roundStartTime)(t => t + spiningDuration + stopDelay * 2)
+                        spinEndTime: map(roundStartTime)(t => t + spiningDuration + stopDelay * 2),
+                        glow: isWinningTime,
                     }),
                     spinButton(scene, {
-                        active: true,
+                        active: map(time, roundEndTime)((time, endTime) => time > endTime),
                         mesh: meshes[MeshName.SpinButton],
                         onClick: startRound,
                         time: time,

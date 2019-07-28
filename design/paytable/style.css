@@ -1,17 +1,18 @@
 body {
     border: solid 2px red;
-    background-color: #2c2c2c;
+    background-color: #777777;
     max-width: 44em;
     font-size: 32px;
     font-family: "Lato";
+    padding-bottom: 1em;
 }
 
 h1 {
     text-align: center;
     font-size: 3em;
-    margin: 0.15em 0 0.15em 0;
-    color: #717100;
-    -webkit-text-stroke: 0.06em white;
+    margin: 0.15em 0 0.1em 0;
+    color: #ff2222;
+    -webkit-text-stroke: 0.06em black;
 }
 
 ul {
@@ -54,13 +55,13 @@ li > div {
 
 li > div:last-child {
     font-size: 1.33em;
-    color: black;
-    -webkit-text-stroke: 0.06em white;
+    color: white;
+    -webkit-text-stroke: 0.06em black;
 }
 
 span {
     color: red;
-    -webkit-text-stroke: 0.06em white;
+    -webkit-text-stroke: 0.06em black;
 }
 
 .iCherry, .iSeven, .iBAR, .i2xBAR, .i3xBAR, .iAnyBAR {
@@ -70,7 +71,6 @@ span {
     background-size: contain;
     background-repeat: no-repeat;
     background-position: center;
-    filter: drop-shadow(0 0 4px white);
 }
 
 .iBAR, .i2xBAR, .i3xBAR {
@@ -109,7 +109,7 @@ i:last-of-type {
 }
 
 .iAnyBAR:before {
-    -webkit-text-stroke: 0.06em white;
+    -webkit-text-stroke: 0.06em black;
     color: red;
     font-size: 0.75em;
     content: "ANY";

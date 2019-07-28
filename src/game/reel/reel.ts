@@ -14,7 +14,9 @@ import {
     asyncContrucor,
     afterDispose,
     map,
-    write
+    write,
+    changes,
+    numberTransition
 } from "rebylon";
 import { uid } from "../utils/uid";
 import { sceneStorage } from "../utils/sceneStorage";
@@ -23,7 +25,7 @@ import {
     symbolImageMap,
     symbolImageSize
 } from "./images";
-import { ReelSymbol, reelContent } from "../../state";
+import { ReelSymbol, allSybols } from "../../state";
 import { loadImage } from "../utils/loadImage";
 
 const loadReelSymbol = memoize((symbol: ReelSymbol) => {
@@ -36,39 +38,70 @@ interface ReelTextureProps {
      */
     offset: Param<number>;
     material: StandardMaterial;
+    highlightedSymbol: Param<ReelSymbol | null>;
+    glow: Param<boolean>;
+    time: Param<number>;
 }
 
-const reelTextures = asyncContrucor(async (scene: Scene, { offset, material }: ReelTextureProps): Promise<Component> => {
-    const images = await Promise.all(reelContent.map(loadReelSymbol));
-    const { width, height } = symbolImageSize,
+const reelTextures = asyncContrucor(async (scene: Scene, { offset, material, highlightedSymbol, glow, time }: ReelTextureProps): Promise<Component> => {
+    const images = await Promise.all(allSybols.map(loadReelSymbol)),
+        { width, height } = symbolImageSize,
         spacing = 16,
-        diffuse = new DynamicTexture(uid("reelTexture"), {
+        emissive = new DynamicTexture(uid("reelEmissiveTexture"), {
             width,
-            height: (height + spacing) * 5,
+            height: (height + spacing) * allSybols.length,
         }, scene, true),
-        context = diffuse.getContext();
-    context.fillStyle = "#FFFFFF";
-    context.fillRect(0, 0, width, (height + spacing) * 5);
+        diffuse = new DynamicTexture(uid("reelDiffuseTexture"), {
+            width,
+            height: (height + spacing) * allSybols.length,
+        }, scene, true),
+        diffuseContext = diffuse.getContext();
+    diffuseContext.fillStyle = "#FEFEFE";
+    diffuseContext.fillRect(0, 0, width, (height + spacing) * allSybols.length);
     images.forEach((image, i) => {
-        context.drawImage(image, 0, (height + spacing) * i);
+        diffuseContext.drawImage(image, 0, (height + spacing) * i);
     });
 
     diffuse.update();
 
-    diffuse.vScale = 0.5;
-    diffuse.wrapV = 1;
+    emissive.vScale = diffuse.vScale = 2.5 / allSybols.length;
+    emissive.wrapV = diffuse.wrapV = 1;
 
     material.diffuseTexture = diffuse;
 
-    // ReelSymbol.Cherry, ReelSymbol.BAR, ReelSymbol.Seven
-    const updateOffset = write(diffuse, {
-        vOffset: map(offset)(offset => -offset / 5 + 0.45)
+    const updateEmissive = changes(highlightedSymbol)(symbol => {
+        const context = emissive.getContext();
+        context.fillStyle = "#000";
+        context.fillRect(0, 0, width, (height + spacing) * allSybols.length);
+        if (symbol) {
+            const i = allSybols.indexOf(symbol);
+            context.drawImage(images[i], 0, i * (height + spacing));
+        }
+        emissive.update();
     });
 
+    material.emissiveTexture = emissive;
+
+    const textureOffset = map(offset)(offset => -offset / allSybols.length + 0.45),
+        updateOffset = composeEffects(
+            write(diffuse, { vOffset: textureOffset }),
+            write(emissive, { vOffset: textureOffset }),
+        );
+    
+    const maxGlow = map(glow)(v => v ? 1 : 0),
+        animatedMaxGlow = numberTransition({ time, value: maxGlow, duration: 500 }),
+        updateGlow = write(material, {
+            emissiveColor: map(time, animatedMaxGlow)((time, glow) => {
+                const v = glow * (Math.sin(time / 200) + 1) * 0.5;
+                return new Color3(v, v, v);
+            })
+        });
+
     return {
-        update: composeEffects(updateOffset),
+        update: composeEffects(updateOffset, updateEmissive, updateGlow),
         dispose: () => {
             diffuse.dispose();
+            emissive.dispose();
         }
     };
 });
@@ -80,6 +113,7 @@ export interface ReelProps {
     spinStartTime: Param<number>;
     spinEndTime: Param<number>;
     highlightedSymbol: Param<ReelSymbol | null>;
+    glow: Param<boolean>;
     time: Param<number>;
 }
 
@@ -96,6 +130,8 @@ export function reel(scene: Scene, {
     currenSymbol,
     spinStartTime,
     spinEndTime,
+    highlightedSymbol,
+    glow,
     time
 }: ReelProps): Component {
     const material = new StandardMaterial(uid("reelMaterial"), scene);
@@ -120,8 +156,8 @@ export function reel(scene: Scene, {
         endTime,
         time
     ) => {
-        const offset1 = reelContent.indexOf(previous),
-            offset2 = reelContent.indexOf(current) - rotationsPerRound * 5;
+        const offset1 = allSybols.indexOf(previous),
+            offset2 = allSybols.indexOf(current) - rotationsPerRound * allSybols.length;
         if (time <= startTime) {
             return offset1;
         } else if (time >= endTime) {
@@ -134,7 +170,10 @@ export function reel(scene: Scene, {
     return afterDispose(
         reelTextures(scene, {
             material,
-            offset
+            offset,
+            time,
+            glow,
+            highlightedSymbol,
         }),
         () => material.dispose()
     );
