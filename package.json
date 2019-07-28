@@ -9,6 +9,7 @@
         "babel-polyfill": "6.26.0",
         "babylonjs": "4.0.3",
         "babylonjs-loaders": "4.0.3",
+        "lodash-es": "4.17.15",
         "pepjs": "0.5.2",
         "react": "16.8.6",
         "react-dom": "16.8.6",
@@ -16,8 +17,8 @@
         "rebylon": "1.0.10",
         "redux": "4.0.4",
         "redux-devtools-extension": "2.13.8",
-        "typesafe-actions": "4.4.2",
-        "lodash-es": "4.17.15"
+        "reselect": "4.0.0",
+        "typesafe-actions": "4.4.2"
     },
     "devDependencies": {
         "parcel": "1.12.3",

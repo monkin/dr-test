@@ -1,4 +1,3 @@
-
 export enum ReelSymbol {
     BARx3 = "BARx3",
     BAR = "BAR",
@@ -6,6 +5,8 @@ export enum ReelSymbol {
     Seven = "Seven",
     Cherry = "Cherry"
 }
+
+export type SymbolsRow = [ReelSymbol, ReelSymbol, ReelSymbol];
 
 export const reelContent = [
     ReelSymbol.BARx3,
@@ -16,6 +17,23 @@ export const reelContent = [
 ];
 
 export function nextSymbol(symbol: ReelSymbol) {
-    return (reelContent.indexOf(symbol) + 1) % 5;
+    return reelContent[(reelContent.indexOf(symbol) + 1) % reelContent.length];
 }
 
+export function previousSymbol(symbol: ReelSymbol) {
+    return reelContent[(reelContent.indexOf(symbol) - 1 + reelContent.length) % reelContent.length];
+}
+
+export interface GameRound {
+    startTime: number;
+    /**
+     * Top line content
+     */
+    currentSymbols: SymbolsRow;
+    previousSymbols: SymbolsRow;
+}
+
+export interface GameState {
+    time: number;
+    round: GameRound;
+}
