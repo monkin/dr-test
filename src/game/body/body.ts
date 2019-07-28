@@ -5,7 +5,7 @@ import {
     Color3,
 } from "babylonjs";
 import { noop } from "rebylon";
-import { uid } from "../uid";
+import { uid } from "../utils/uid";
 
 interface BodyProps {
     mesh: Mesh;

@@ -16,6 +16,7 @@ import {
     body,
     paytable
 } from "./game";
+import { ReelSymbol } from "./state";
 
 window.addEventListener("DOMContentLoaded", () => {
     const canvas = document.getElementById("canvas") as HTMLCanvasElement,
@@ -34,18 +35,27 @@ window.addEventListener("DOMContentLoaded", () => {
                 }),
                 reel(scene, {
                     mesh: meshes[MeshName.Reel1],
+                    topSymbol: ReelSymbol.Seven,
                 }),
                 reel(scene, {
                     mesh: meshes[MeshName.Reel2],
+                    topSymbol: ReelSymbol.BARx2,
                 }),
                 reel(scene, {
                     mesh: meshes[MeshName.Reel3],
+                    topSymbol: ReelSymbol.BAR,
                 }),
                 border(scene, {
                     mesh: meshes[MeshName.MachineEdge],
                 }),
                 body(scene, {
                     mesh: meshes[MeshName.MachineBody],
+                }),
+                body(scene, {
+                    mesh: meshes[MeshName.LeftBanner],
+                }),
+                body(scene, {
+                    mesh: meshes[MeshName.RightBanner],
                 })
             )),
         );

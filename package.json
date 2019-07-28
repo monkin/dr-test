@@ -22,7 +22,7 @@
     "devDependencies": {
         "parcel": "1.12.3",
         "typescript": "3.5.3",
-        "@types/lodash": "4.14.136"
+        "@types/lodash-es": "4.17.3"
     },
     "scripts": {
         "start": "parcel src/index.html"

@@ -6,7 +6,7 @@ import {
     Color3
 } from "babylonjs";
 import { Component, noop } from "rebylon";
-import { uid } from "../uid";
+import { uid } from "../utils/uid";
 
 import paytableImage from "./images/paytable.png";
 
@@ -16,7 +16,7 @@ export interface PaytableProps {
 
 export function paytable(scene: Scene, { mesh }: PaytableProps): Component {
     const material = new StandardMaterial(uid("paytableMaterial"), scene),
-        texture = new Texture(paytableImage, scene);
+        texture = new Texture(paytableImage, scene, false);
     
     material.diffuseTexture = texture;
     material.specularColor = new Color3(0.1, 0.1, 0.1);
