@@ -39,7 +39,6 @@ export const sceneLoader = asyncContrucor(async (scene: Scene, onLoad: (meshes: 
     const { meshes } = await SceneLoader.ImportMeshAsync("", "./", sceneFile.replace(/^\//, ""), scene);
     return afterDispose(onLoad(meshes.reduce((r, mesh) => {
         mesh.freezeWorldMatrix();
-        console.log(mesh.id);
         r[mesh.id as MeshName] = mesh as (AbstractMesh & Mesh);
         return r;
     }, {} as Partial<LoadedMeshes>) as LoadedMeshes), () => {

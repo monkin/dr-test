@@ -16,6 +16,9 @@ export function selectTime(state: GameState) {
 export function selectRound(state: GameState) {
     return state.round;
 }
+export function selectBalance(state: GameState) {
+    return state.balance;
+}
 
 export const selectRoundStartTime = createSelector(selectRound, round => round.startTime);
 export const selectPreviousSymbols = createSelector(selectRound, round => round.previousSymbols);

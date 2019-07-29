@@ -38,12 +38,12 @@ interface ReelTextureProps {
      */
     offset: Param<number>;
     material: StandardMaterial;
-    highlightedSymbol: Param<ReelSymbol | null>;
-    glow: Param<boolean>;
+    winningSymbol: Param<ReelSymbol | null>;
+    highlightWinningSymbol: Param<boolean>;
     time: Param<number>;
 }
 
-const reelTextures = asyncContrucor(async (scene: Scene, { offset, material, highlightedSymbol, glow, time }: ReelTextureProps): Promise<Component> => {
+const reelTextures = asyncContrucor(async (scene: Scene, { offset, material, winningSymbol, highlightWinningSymbol, time }: ReelTextureProps): Promise<Component> => {
     const images = await Promise.all(allSybols.map(loadReelSymbol)),
         { width, height } = symbolImageSize,
         spacing = 16,
@@ -69,7 +69,7 @@ const reelTextures = asyncContrucor(async (scene: Scene, { offset, material, hig
 
     material.diffuseTexture = diffuse;
 
-    const updateEmissive = changes(highlightedSymbol)(symbol => {
+    const updateEmissive = changes(winningSymbol)(symbol => {
         const context = emissive.getContext();
         context.fillStyle = "#000";
         context.fillRect(0, 0, width, (height + spacing) * allSybols.length);
@@ -88,7 +88,7 @@ const reelTextures = asyncContrucor(async (scene: Scene, { offset, material, hig
             write(emissive, { vOffset: textureOffset }),
         );
     
-    const maxGlow = map(glow)(v => v ? 1 : 0),
+    const maxGlow = map(highlightWinningSymbol)(v => v ? 1 : 0),
         animatedMaxGlow = numberTransition({ time, value: maxGlow, duration: 500 }),
         updateGlow = write(material, {
             emissiveColor: map(time, animatedMaxGlow)((time, glow) => {
@@ -112,8 +112,8 @@ export interface ReelProps {
     currenSymbol: Param<ReelSymbol>;
     spinStartTime: Param<number>;
     spinEndTime: Param<number>;
-    highlightedSymbol: Param<ReelSymbol | null>;
-    glow: Param<boolean>;
+    winningSymbol: Param<ReelSymbol | null>;
+    highlightWinningSymbol: Param<boolean>;
     time: Param<number>;
 }
 
@@ -130,8 +130,8 @@ export function reel(scene: Scene, {
     currenSymbol,
     spinStartTime,
     spinEndTime,
-    highlightedSymbol,
-    glow,
+    winningSymbol,
+    highlightWinningSymbol,
     time
 }: ReelProps): Component {
     const material = new StandardMaterial(uid("reelMaterial"), scene);
@@ -139,7 +139,7 @@ export function reel(scene: Scene, {
     material.useLightmapAsShadowmap = true;
     material.sideOrientation = Mesh.FRONTSIDE;
     material.diffuseColor = new Color3(0.75, 0.75, 0.75);
-    material.specularColor = new Color3(0, 0, 0);
+    material.specularColor = new Color3(0.1, 0.1, 0.1);
 
     mesh.material = material;
 
@@ -172,8 +172,8 @@ export function reel(scene: Scene, {
             material,
             offset,
             time,
-            glow,
-            highlightedSymbol,
+            highlightWinningSymbol,
+            winningSymbol,
         }),
         () => material.dispose()
     );

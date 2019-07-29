@@ -1,3 +1,5 @@
+export const spinPrice = 1;
+
 export enum ReelSymbol {
     BARx3 = "BARx3",
     BAR = "BAR",
@@ -25,9 +27,9 @@ export function previousSymbol(symbol: ReelSymbol) {
 }
 
 export enum Combination {
-    Cherry1Row = "Cherry1row",
-    Cherry2Row = "Cherry2row",
-    Cherry3Row = "Cherry3row",
+    Cherry1Row = "Cherry1Row",
+    Cherry2Row = "Cherry2Row",
+    Cherry3Row = "Cherry3Row",
     SevenRow = "SevenRow",
     SevenOrCherryRow = "SevenOrCherryRow",
     BARx3Row = "BARx3Row",
@@ -108,5 +110,6 @@ export interface GameRound {
 
 export interface GameState {
     time: number;
+    balance: number;
     round: GameRound;
 }

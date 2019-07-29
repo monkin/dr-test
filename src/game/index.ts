@@ -7,3 +7,4 @@ export * from "./glow";
 export * from "./body";
 export * from "./paytable";
 export * from "./spinButton";
+export * from "./balance";

@@ -15,7 +15,8 @@ import {
     glow,
     body,
     paytable,
-    spinButton
+    spinButton,
+    balance
 } from "./game";
 import {
     createGameStore,
@@ -28,9 +29,13 @@ import {
     selectRoundEndTime,
     selectWinningCombination,
     selectTime,
-    selectIsWinningTime
+    selectIsWinningTime,
+    startRoundAction,
+    setBalanceAction,
+    selectBalance,
+    addBalanceAction,
+    spinPrice
 } from "./state";
-import { startRoundAction } from "./state/branches";
 
 window.addEventListener("DOMContentLoaded", () => {
     const store = createGameStore(),
@@ -47,15 +52,23 @@ window.addEventListener("DOMContentLoaded", () => {
                 roundEndTime = map(state)(selectRoundEndTime),
                 time = map(state)(selectTime),
                 combination = map(state)(selectWinningCombination),
-                isWinningTime = map(state)(selectIsWinningTime);
+                isWinningTime = map(state)(selectIsWinningTime),
+                userBalance = map(state)(selectBalance);
             
             const randomSymbol = () => allSybols[Math.floor(Math.random() * allSybols.length)],
                 startRound = () => {
+                    store.dispatch(addBalanceAction(-spinPrice));
                     store.dispatch(startRoundAction(Date.now(), [
                         randomSymbol(),
                         randomSymbol(),
                         randomSymbol()
                     ]));
+                    const combination = selectWinningCombination(store.getState());
+                    if (combination) {
+                        setTimeout(() => {
+                            store.dispatch(addBalanceAction(combination.amount));
+                        }, spiningDuration + stopDelay * 2);
+                    }
                 };
 
             return group(
@@ -63,41 +76,51 @@ window.addEventListener("DOMContentLoaded", () => {
                 lights(scene),
                 glow(scene),
                 sceneLoader(scene, meshes => group(
+                    balance(scene, {
+                        time,
+                        mesh: meshes[MeshName.Balance],
+                        balance: userBalance,
+                        clickable: true,
+                        onClick: () => { console.log("balance click") }
+                    }),
                     paytable(scene, {
+                        time,
                         mesh: meshes[MeshName.PayoutsPanel],
+                        winningCombination: map(combination)(c => c ? c.combination : null),
+                        highlightWinningCombination: isWinningTime
                     }),
                     reel(scene, {
                         time,
                         mesh: meshes[MeshName.Reel1],
                         previousSymbol: map(previousSymbols)(row => row[0]),
                         currenSymbol: map(firstRow)(row => row[0]),
-                        highlightedSymbol: map(combination)(c => c ? c.symbols[0] : null),
+                        winningSymbol: map(combination)(c => c ? c.symbols[0] : null),
                         spinStartTime: roundStartTime,
                         spinEndTime: map(roundStartTime)(t => t + spiningDuration),
-                        glow: isWinningTime,
+                        highlightWinningSymbol: isWinningTime,
                     }),
                     reel(scene, {
                         time,
                         mesh: meshes[MeshName.Reel2],
                         previousSymbol: map(previousSymbols)(row => row[1]),
                         currenSymbol: map(firstRow)(row => row[1]),
-                        highlightedSymbol: map(combination)(c => c ? c.symbols[1] : null),
+                        winningSymbol: map(combination)(c => c ? c.symbols[1] : null),
                         spinStartTime: roundStartTime,
                         spinEndTime: map(roundStartTime)(t => t + spiningDuration + stopDelay),
-                        glow: isWinningTime,
+                        highlightWinningSymbol: isWinningTime,
                     }),
                     reel(scene, {
                         time,
                         mesh: meshes[MeshName.Reel3],
                         previousSymbol: map(previousSymbols)(row => row[2]),
                         currenSymbol: map(firstRow)(row => row[2]),
-                        highlightedSymbol: map(combination)(c => c ? c.symbols[2] : null),
+                        winningSymbol: map(combination)(c => c ? c.symbols[2] : null),
                         spinStartTime: roundStartTime,
                         spinEndTime: map(roundStartTime)(t => t + spiningDuration + stopDelay * 2),
-                        glow: isWinningTime,
+                        highlightWinningSymbol: isWinningTime,
                     }),
                     spinButton(scene, {
-                        active: map(time, roundEndTime)((time, endTime) => time > endTime),
+                        active: map(time, roundEndTime, userBalance)((time, endTime, balance) => time > endTime && balance >= spinPrice),
                         mesh: meshes[MeshName.SpinButton],
                         onClick: startRound,
                         time: time,
@@ -117,6 +140,8 @@ window.addEventListener("DOMContentLoaded", () => {
                 )),
             );
         });
+    
+    store.dispatch(setBalanceAction(3000));
 
     function resize() {
         engine.setHardwareScalingLevel(1 / (window.devicePixelRatio || 1));
