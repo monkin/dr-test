@@ -17,7 +17,8 @@ export enum MeshName {
     LeftBanner = "Machine_Body_LeftBannerMaterial",
     Reel1 = "Reel1_Reel1_ReelMaterial",
     Reel2 = "Reel2_Reel2_ReelMaterial",
-    Reel3 = "Reel3_Reel3_ReelMaterial"
+    Reel3 = "Reel3_Reel3_ReelMaterial",
+    Balance = "Machine_Body_Balance",
 }
 
 interface LoadedMeshes {
@@ -31,12 +32,14 @@ interface LoadedMeshes {
     [MeshName.Reel1]: Mesh;
     [MeshName.Reel2]: Mesh;
     [MeshName.Reel3]: Mesh;
+    [MeshName.Balance]: Mesh;
 }
 
 export const sceneLoader = asyncContrucor(async (scene: Scene, onLoad: (meshes: LoadedMeshes) => Component): Promise<Component> => {
     const { meshes } = await SceneLoader.ImportMeshAsync("", "./", sceneFile.replace(/^\//, ""), scene);
     return afterDispose(onLoad(meshes.reduce((r, mesh) => {
         mesh.freezeWorldMatrix();
+        console.log(mesh.id);
         r[mesh.id as MeshName] = mesh as (AbstractMesh & Mesh);
         return r;
     }, {} as Partial<LoadedMeshes>) as LoadedMeshes), () => {
