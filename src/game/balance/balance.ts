@@ -1,6 +1,7 @@
 import { Scene, Mesh, StandardMaterial, DynamicTexture, Color3 } from "babylonjs";
-import { Param, composeEffects, changes, numberTransition, map } from "rebylon";
+import { Param, composeEffects, changes, numberTransition, map, group } from "rebylon";
 import { uid } from "../utils/uid";
+import { clickHandler } from "../utils/clickHandler";
 
 export interface BalanceProps {
     mesh: Mesh;
@@ -57,13 +58,16 @@ export function balance(scene: Scene, { mesh, balance, time, clickable, onClick 
     material.sideOrientation = Mesh.FRONTSIDE;
 
     mesh.material = material;
-    return {
-        update: composeEffects(
-            updateTexture,
-        ),
-        dispose: () => {
-            material.dispose();
-            texture.dispose();
-        }
-    }
+    return group({
+            update: updateTexture,
+            dispose: () => {
+                material.dispose();
+                texture.dispose();
+            }
+        },
+        clickHandler(scene, {
+            mesh, onClick,
+            enabled: clickable
+        }),
+    );
 }

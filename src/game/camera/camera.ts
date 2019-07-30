@@ -16,6 +16,7 @@ export function camera(scene: Scene): Component {
     camera.upperAlphaLimit = alpha + delta;
     camera.lowerBetaLimit = beta - delta;
     camera.upperBetaLimit = beta + delta;
+    camera.panningSensibility = 0;
     camera.attachControl(scene.getEngine().getRenderingCanvas()!, false);
     return {
         update: noop,

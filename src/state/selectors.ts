@@ -6,7 +6,9 @@ import {
     allCombinations,
     combinationTest,
     WinningCombination,
-    combinationPayout
+    combinationPayout,
+    spinPrice,
+    previousSymbol
 } from "./state";
 import { spiningDuration, stopDelay, winningDuration } from "./timing";
 
@@ -18,6 +20,18 @@ export function selectRound(state: GameState) {
 }
 export function selectBalance(state: GameState) {
     return state.balance;
+}
+
+export function selectGameMode(state: GameState) {
+    return state.settings.mode;
+}
+
+export function selectIsBalanceDialogOpen(state: GameState) {
+    return state.settings.isBalanceDialogOpen;
+}
+
+export function selectPredefinedReelsPosition(state: GameState) {
+    return state.settings.reelsPosition;
 }
 
 export const selectRoundStartTime = createSelector(selectRound, round => round.startTime);
@@ -60,4 +74,27 @@ export const selectIsWinningTime = createSelector(
     (roundStartTime, roundEndTime, time) => {
         return (time > roundStartTime + spiningDuration + stopDelay * 2) && (time < roundEndTime);
     }
+);
+
+export const selectIsRoundFinished = createSelector(
+    selectRoundEndTime, selectTime,
+    (endTime, time) => time > endTime
+);
+
+export const selectCanStartNewRound = createSelector(
+    selectIsRoundFinished, selectBalance,
+    (finished, balance) => finished && balance >= spinPrice,
+);
+
+export const selectPredefinedTopRowSymbols = createSelector(
+    selectPredefinedReelsPosition,
+    (positions) => {
+        return positions.map(({ symbol, row }) => {
+            let result = symbol;
+            for (let i = 0; i < row; i++) {
+                result = previousSymbol(result);
+            }
+            return result;
+        }) as SymbolsRow;
+    },
 );

@@ -1,3 +1,6 @@
+import * as React from "react";
+import * as ReactDOM from "react-dom";
+import { Provider } from "react-redux";
 import "babel-core/register";
 import "babel-polyfill";
 import "pepjs";
@@ -26,7 +29,6 @@ import {
     spiningDuration,
     stopDelay,
     allSybols,
-    selectRoundEndTime,
     selectWinningCombination,
     selectTime,
     selectIsWinningTime,
@@ -34,8 +36,19 @@ import {
     setBalanceAction,
     selectBalance,
     addBalanceAction,
-    spinPrice
+    spinPrice,
+    selectIsRoundFinished,
+    selectCanStartNewRound,
+    openBalanceDialogAction,
+    selectGameMode,
+    GameMode,
+    selectPredefinedTopRowSymbols,
 } from "./state";
+import {
+    BalanceDialogConnected,
+    ReelPositionInputConnected,
+    GameModeInputConnected,
+} from "./panel";
 
 window.addEventListener("DOMContentLoaded", () => {
     const store = createGameStore(),
@@ -49,27 +62,38 @@ window.addEventListener("DOMContentLoaded", () => {
             const previousSymbols = map(state)(selectPreviousSymbols),
                 firstRow = map(state)(selectFirstRow),
                 roundStartTime = map(state)(selectRoundStartTime),
-                roundEndTime = map(state)(selectRoundEndTime),
                 time = map(state)(selectTime),
                 combination = map(state)(selectWinningCombination),
                 isWinningTime = map(state)(selectIsWinningTime),
-                userBalance = map(state)(selectBalance);
+                userBalance = map(state)(selectBalance),
+                isRoundFinished = map(state)(selectIsRoundFinished),
+                canStartNewRound = map(state)(selectCanStartNewRound);
             
-            const randomSymbol = () => allSybols[Math.floor(Math.random() * allSybols.length)],
-                startRound = () => {
-                    store.dispatch(addBalanceAction(-spinPrice));
+            const randomSymbol = () => allSybols[Math.floor(Math.random() * allSybols.length)];
+            const startRound = () => {
+                store.dispatch(addBalanceAction(-spinPrice));
+
+                const state = store.getState();
+                if (selectGameMode(state) === GameMode.Random) {
                     store.dispatch(startRoundAction(Date.now(), [
                         randomSymbol(),
                         randomSymbol(),
                         randomSymbol()
                     ]));
-                    const combination = selectWinningCombination(store.getState());
-                    if (combination) {
-                        setTimeout(() => {
-                            store.dispatch(addBalanceAction(combination.amount));
-                        }, spiningDuration + stopDelay * 2);
-                    }
-                };
+                } else {
+                    store.dispatch(startRoundAction(
+                        Date.now(),
+                        selectPredefinedTopRowSymbols(state),
+                    ));
+                }
+
+                const combination = selectWinningCombination(store.getState());
+                if (combination) {
+                    setTimeout(() => {
+                        store.dispatch(addBalanceAction(combination.amount));
+                    }, spiningDuration + stopDelay * 2);
+                }
+            };
 
             return group(
                 camera(scene),
@@ -80,8 +104,10 @@ window.addEventListener("DOMContentLoaded", () => {
                         time,
                         mesh: meshes[MeshName.Balance],
                         balance: userBalance,
-                        clickable: true,
-                        onClick: () => { console.log("balance click") }
+                        clickable: isRoundFinished,
+                        onClick: () => {
+                            store.dispatch(openBalanceDialogAction());
+                        },
                     }),
                     paytable(scene, {
                         time,
@@ -120,7 +146,7 @@ window.addEventListener("DOMContentLoaded", () => {
                         highlightWinningSymbol: isWinningTime,
                     }),
                     spinButton(scene, {
-                        active: map(time, roundEndTime, userBalance)((time, endTime, balance) => time > endTime && balance >= spinPrice),
+                        active: canStartNewRound,
                         mesh: meshes[MeshName.SpinButton],
                         onClick: startRound,
                         time: time,
@@ -159,4 +185,26 @@ window.addEventListener("DOMContentLoaded", () => {
         app.update();
         scene.render();
     });
+
+    // initialize dubug panel
+    const panel = document.getElementById("panel")!;
+    ReactDOM.render(
+        <Provider store={store}>
+            <GameModeInputConnected/>
+            <ReelPositionInputConnected
+                reel={0}
+                label="First reel symbol and row"
+            />
+            <ReelPositionInputConnected
+                reel={1}
+                label="Second reel symbol and row"
+            />
+            <ReelPositionInputConnected
+                reel={2}
+                label="Third reel symbol and row"
+            />
+            <BalanceDialogConnected/>
+        </Provider>,
+        panel,
+    );
 });

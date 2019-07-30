@@ -18,14 +18,18 @@
         "redux": "4.0.4",
         "redux-devtools-extension": "2.13.8",
         "reselect": "4.0.0",
-        "typesafe-actions": "4.4.2"
+        "typesafe-actions": "4.4.2",
+        "@material-ui/core": "4.3.0"
     },
     "devDependencies": {
+        "@types/lodash-es": "4.17.3",
+        "@types/react-dom": "16.8.5",
+        "@types/react-redux": "7.1.1",
         "parcel": "1.12.3",
-        "typescript": "3.5.3",
-        "@types/lodash-es": "4.17.3"
+        "typescript": "3.5.3"
     },
     "scripts": {
+        "build": "parcel build src/index.html --public-url ./",
         "start": "parcel src/index.html"
     }
 }

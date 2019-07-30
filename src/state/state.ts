@@ -108,8 +108,28 @@ export interface GameRound {
     previousSymbols: SymbolsRow;
 }
 
+export enum GameMode {
+    Random = "Random",
+    Fixed = "Fixed",
+}
+
+export type ReelNumber = 0 | 1 | 2;
+export type RowNumber = 0 | 1 | 2;
+
+export interface ReelPosition {
+    symbol: ReelSymbol;
+    row: RowNumber;
+}
+
+export interface GameSettings {
+    mode: GameMode;
+    isBalanceDialogOpen: boolean;
+    reelsPosition: [ReelPosition, ReelPosition, ReelPosition];
+}
+
 export interface GameState {
     time: number;
     balance: number;
     round: GameRound;
+    settings: GameSettings;
 }
